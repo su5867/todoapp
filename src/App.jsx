@@ -3,21 +3,25 @@ import { getTodos, addTodo, updateTodo, replaceTodo, deleteTodo } from "./api";
 import "./App.css";
 
 export default function App() {
+  // This is the main list of tasks
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [text, setText] = useState("");
-  // GET: runs once when the page opens
+
+  // Load tasks when the app opens
   useEffect(() => {
     getTodos()
       .then(setTodos)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
-  // POST: add a new to-do
+
+  // Add a new task
   async function handleAdd(e) {
-    e.preventDefault();                 // stop the page from reloading
+    e.preventDefault();
     if (!text.trim()) return;
+
     try {
       const saved = await addTodo(text);
       setTodos([{ ...saved, id: Date.now() }, ...todos]);
@@ -27,30 +31,36 @@ export default function App() {
       setError(err.message);
     }
   }
-  // PATCH: tick or untick
+
+  // Mark a task as done or not done
   async function handleToggle(todo) {
     try {
       await updateTodo(todo.id, { completed: !todo.completed });
-      setTodos(todos.map((t) =>
-        t.id === todo.id ? { ...t, completed: !t.completed } : t
-      ));
+      setTodos(
+        todos.map((t) =>
+          t.id === todo.id ? { ...t, completed: !t.completed } : t
+        )
+      );
     } catch (err) {
       setError(err.message);
     }
   }
-  // PUT: rename
+
+  // Change task name
   async function handleRename(todo) {
-    const title = window.prompt("New title:", todo.title);
-    if (!title) return;
+    const newTitle = window.prompt("Edit task:", todo.title);
+    if (!newTitle) return;
+
     try {
-      const newTodo = { ...todo, title: title };
-      await replaceTodo(todo.id, newTodo);
-      setTodos(todos.map((t) => (t.id === todo.id ? newTodo : t)));
+      const updated = { ...todo, title: newTitle };
+      await replaceTodo(todo.id, updated);
+      setTodos(todos.map((t) => (t.id === todo.id ? updated : t)));
     } catch (err) {
       setError(err.message);
     }
   }
-  // DELETE: remove
+
+  // Remove task
   async function handleDelete(id) {
     try {
       await deleteTodo(id);
@@ -59,11 +69,12 @@ export default function App() {
       setError(err.message);
     }
   }
+
   if (loading) return <p className="msg">Loading...</p>;
 
   return (
     <div className="app">
-      <h1>My To-Do App</h1>
+      <h1>Developer Task Planner</h1>
       {error && <p className="error">{error}</p>}
 
       <form onSubmit={handleAdd} className="add-form">
@@ -84,8 +95,12 @@ export default function App() {
               onChange={() => handleToggle(todo)}
             />
             <span className={todo.completed ? "done" : ""}>{todo.title}</span>
-            <button onClick={() => handleRename(todo)}>Rename</button>
-            <button onClick={() => handleDelete(todo.id)}>Delete</button>
+            <div className="actions">
+              <button onClick={() => handleRename(todo)}>Rename</button>
+              <button className="delete-btn" onClick={() => handleDelete(todo.id)}>
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>
