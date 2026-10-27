@@ -83,6 +83,23 @@
   overflow: hidden;
 }
 
+.composer-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px 26px 0;
+}
+
+.composer-header h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+}
+
+.composer-header p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
 .composer-form {
   display: flex;
   flex-direction: column;
@@ -91,17 +108,29 @@
 .composer-main {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
   gap: 12px;
-  padding: 22px 26px;
+  padding: 18px 26px 10px;
+}
+
+.title-field {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+
+.field-label {
+  font-size: 0.95rem;
 }
 
 .title-input {
-  flex: 1 1 280px;
-  border-radius: 999px;
-  border: 1px solid transparent;
+  border-radius: 12px;
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-primary);
-  padding: 12px 22px;
+  padding: 12px 18px;
   font-size: 1.02rem;
 }
 
@@ -171,9 +200,22 @@
   font-size: 0.98rem;
 }
 
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: rgba(124, 92, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.16);
+}
+
+.field small {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
 .field textarea {
   resize: vertical;
-  min-height: 90px;
+  min-height: 110px;
 }
 
 .toolbar {

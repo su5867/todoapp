@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getTodos, addTodo, updateTodo, deleteTodo } from "./api";
 import "./App.css";
 
@@ -45,7 +45,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("created");
 
-  useState(() => {
+  useEffect(() => {
     getTodos()
       .then((items) => {
         setTodos(items);
@@ -207,15 +207,22 @@ export default function App() {
       {error && <div className="error-banner">{error}</div>}
 
       <section className="composer">
+        <div className="composer-header">
+          <h2>Create a new task</h2>
+          <p>Fill in what needs to be done. Only the title is required.</p>
+        </div>
         <form onSubmit={handleAdd} className="composer-form">
           <div className="composer-main">
-            <input
-              className="title-input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add a task... (e.g. Fix auth redirect on refresh)"
-              required
-            />
+            <label className="title-field">
+              <span className="field-label">Task title *</span>
+              <input
+                className="title-input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="What needs to be done? e.g. Fix auth redirect on refresh"
+                required
+              />
+            </label>
             <button className="primary-btn" type="submit">
               Add Task
             </button>
@@ -225,7 +232,7 @@ export default function App() {
             className="ghost-btn"
             onClick={() => setShowAdvanced((v) => !v)}
           >
-            {showAdvanced ? "Hide details" : "Add details (project, due, tags, notes)"}
+            {showAdvanced ? "Hide optional details" : "Show optional details (project, priority, due date, tags, notes)"}
           </button>
           {showAdvanced && (
             <div className="composer-advanced">
@@ -235,7 +242,7 @@ export default function App() {
                   <input
                     value={project}
                     onChange={(e) => setProject(e.target.value)}
-                    placeholder="api-service"
+                    placeholder="e.g. frontend-app"
                     list="project-suggestions"
                   />
                   <datalist id="project-suggestions">
@@ -253,6 +260,7 @@ export default function App() {
                       </option>
                     ))}
                   </select>
+                  <small>High = blocking/urgent, Low = nice to have</small>
                 </label>
                 <label className="field">
                   <span>Due date</span>
@@ -263,7 +271,7 @@ export default function App() {
                   <input
                     value={tagsInput}
                     onChange={(e) => setTagsInput(e.target.value)}
-                    placeholder="bug, api, tests"
+                    placeholder="e.g. bug, api, tests"
                   />
                 </label>
               </div>
@@ -272,8 +280,8 @@ export default function App() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Acceptance criteria, links, or reproduction steps..."
-                  rows={3}
+                  placeholder="Add acceptance criteria, reproduction steps, links, or context..."
+                  rows={4}
                 />
               </label>
             </div>
