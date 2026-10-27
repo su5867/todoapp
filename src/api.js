@@ -1,50 +1,75 @@
-const BASE_URL = "https://jsonplaceholder.typicode.com/todos";
+const STORAGE_KEY = "devforge-todos-v1";
 
-// GET: read the to-dos
-export async function getTodos() {
-  const res = await fetch(BASE_URL + "?_limit=8");
-  if (!res.ok) throw new Error("Could not load to-dos");
-  return res.json();
+function loadTodos() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    return [];
+  } catch {
+    return [];
+  }
 }
 
-// POST: create a to-do
-export async function addTodo(title) {
-  const res = await fetch(BASE_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: title, completed: false, userId: 1 }),
+function saveTodos(todos) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  } catch {
+    // ignore write errors
+  }
+}
+
+let todos = loadTodos();
+
+function uid() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function getTodos() {
+  return Promise.resolve([...todos]);
+}
+
+export function addTodo(payload) {
+  const todo = {
+    id: uid(),
+    title: payload.title?.trim() || "Untitled",
+    description: payload.description?.trim() || "",
+    completed: false,
+    priority: payload.priority || "med",
+    tags: Array.isArray(payload.tags) ? payload.tags.filter(Boolean) : [],
+    project: payload.project?.trim() || "",
+    dueDate: payload.dueDate || "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  todos = [todo, ...todos];
+  saveTodos(todos);
+  return Promise.resolve({ ...todo });
+}
+
+export function updateTodo(id, changes) {
+  todos = todos.map((todo) => {
+    if (todo.id !== id) return todo;
+    return {
+      ...todo,
+      ...changes,
+      updatedAt: new Date().toISOString(),
+    };
   });
-  if (!res.ok) throw new Error("Could not add the to-do");
-  return res.json();
+  saveTodos(todos);
+  return Promise.resolve(todos.find((todo) => todo.id === id));
 }
 
-// PATCH: change only some fields
-export async function updateTodo(id, changes) {
-  if (id > 200) return changes;  // pretend server has only 200 items
-  const res = await fetch(BASE_URL + "/" + id, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(changes),
-  });
-  if (!res.ok) throw new Error("Could not update the to-do");
-  return res.json();
+export function replaceTodo(id, todo) {
+  todos = todos.map((t) => (t.id === id ? { ...todo, id, updatedAt: new Date().toISOString() } : t));
+  saveTodos(todos);
+  return Promise.resolve(todos.find((t) => t.id === id));
 }
 
-// PUT: replace the whole to-do
-export async function replaceTodo(id, todo) {
-  if (id > 200) return todo;
-  const res = await fetch(BASE_URL + "/" + id, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(todo),
-  });
-  if (!res.ok) throw new Error("Could not rename the to-do");
-  return res.json();
-}
-
-// DELETE: remove a to-do
-export async function deleteTodo(id) {
-  if (id > 200) return;
-  const res = await fetch(BASE_URL + "/" + id, { method: "DELETE" });
-  if (!res.ok) throw new Error("Could not delete the to-do");
+export function deleteTodo(id) {
+  todos = todos.filter((todo) => todo.id !== id);
+  saveTodos(todos);
+  return Promise.resolve();
 }
